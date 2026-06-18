@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "model-server"
+version = "0.1.0"
+description = "gRPC Model Server for ML Inference Gateway"
+dependencies = [
+    "grpcio==1.64.1",
+    "grpcio-tools==1.64.1",
+    "onnxruntime==1.18.0",
+    "numpy==1.26.4",
+    "pydantic==2.7.4",
+    "pydantic-settings==2.3.4"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest==8.2.2",
+    "pytest-asyncio==0.23.7"
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]

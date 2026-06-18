@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package inference;
+
+option java_package = "com.prathamesh.inferencegateway.grpc.generated";
+option java_multiple_files = true;
+
+service InferenceService {
+  // Single-item prediction (used internally by the batcher for the
+  // final batched call to the model server)
+  rpc PredictBatch (PredictBatchRequest) returns (PredictBatchResponse);
+
+  // Readiness check distinct from liveness — must return NOT_READY
+  // until the model is actually loaded into memory.
+  rpc CheckReadiness (ReadinessRequest) returns (ReadinessResponse);
+}
+
+message FeatureVector {
+  // 54-dimensional flat feature vector for Covtype
+  repeated float values = 1;
+  string request_id = 2;   // propagated end-to-end for tracing/idempotency correlation
+}
+
+message PredictBatchRequest {
+  repeated FeatureVector items = 1;
+}
+
+message Prediction {
+  string request_id = 1;
+  repeated float class_probabilities = 2; // 7 classes for Covtype
+  int32 predicted_class_index = 3;
+  int64 inference_latency_micros = 4;  // measured server-side, for honest latency attribution
+}
+
+message PredictBatchResponse {
+  repeated Prediction predictions = 1;
+}
+
+message ReadinessRequest {}
+
+message ReadinessResponse {
+  bool ready = 1;
+  string model_version = 2;
+}

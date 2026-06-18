@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: ml-inference-gateway
+  
+  # Virtual Threads Enabled (Java 21)
+  threads:
+    virtual:
+      enabled: true
+
+  # Postgres Configuration
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/gateway}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:postgres}
+    driver-class-name: org.postgresql.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  # Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # Flyway Configuration
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+# Resilience4j Configuration
+resilience4j.circuitbreaker:
+  instances:
+    inferenceService:
+      registerHealthIndicator: true
+      slidingWindowSize: 20                  # How many calls are evaluated to trigger open
+      failureRateThreshold: 50              # Open if > 50% of the sliding window calls fail
+      waitDurationInOpenState: 10s          # Wait 10s before transitioning to half-open
+      permittedNumberOfCallsInHalfOpenState: 5
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+
+resilience4j.bulkhead:
+  instances:
+    inferenceService:
+      maxConcurrentCalls: 50                 # Sane limit on concurrent inflight calls to model server
+      maxWaitDuration: 500ms                 # Reject fast if bulkhead is full
+
+resilience4j.retry:
+  instances:
+    inferenceService:
+      maxAttempts: 1                         # At most 1 retry, total of 2 attempts
+      waitDuration: 100ms
+      # We only retry for safe exceptions (e.g. UNAVAILABLE before inference actually ran)
+      # Not for timeouts where inference may have already run (prevents double-counting metrics in backend).
+
+# Custom Application Config
+gateway:
+  grpc:
+    target: ${MODEL_SERVER_URL:localhost:50051}
+  batching:
+    max-batch-size: 16
+    max-batch-wait-ms: 15
+    max-queue-depth: 200
+
+# Actuator & Metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
