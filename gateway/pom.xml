@@ -103,6 +103,14 @@
             <version>2.1.1</version>
         </dependency>
 
+        <!-- grpc-java generated stubs reference javax.annotation.Generated, which was
+             removed from the JDK in Java 9+. This legacy API provides that class. -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+
         <!-- Lombok (for boilerplate) -->
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -117,11 +117,33 @@ curl -X POST http://localhost:8080/api/v1/predict \
 
 We provide a **Gatling** simulation that blasts the gateway with 500 requests per second to demonstrate the Adaptive Batcher, Rate Limiting, and Circuit Breakers in action under heavy load.
 
-To run the load test via Docker (no local Maven required):
-```bash
-docker run --rm -v "%cd%\load-testing:/app" -w /app maven:3.9.7-eclipse-temurin-21-alpine mvn test-compile gatling:test
+Run the load test container **on the same Docker network** as the gateway and point it
+straight at the `gateway` service. This bypasses Docker Desktop's `host.docker.internal`
+NAT proxy, which cannot sustain ~500 new connections/sec and would otherwise report
+spurious `Connection refused` errors that have nothing to do with the gateway.
+
+The two `--sysctl` flags let the load generator recycle ephemeral TCP ports quickly, so the
+*client* container does not exhaust its local port range (`Address not available`) while
+opening a fresh connection per virtual user.
+
+**PowerShell (Windows):**
+```powershell
+docker run --rm --network ml-inference-gateway_default `
+  --sysctl net.ipv4.tcp_tw_reuse=1 --sysctl net.ipv4.ip_local_port_range="1024 65535" `
+  -v "${PWD}\load-testing:/app" -w /app `
+  maven:3.9.7-eclipse-temurin-21-alpine mvn test-compile gatling:test "-Dtarget.url=http://gateway:8080"
 ```
-*(On Linux/macOS, replace `%cd%` with `$(pwd)`)*
+
+**Bash (Linux/macOS):**
+```bash
+docker run --rm --network ml-inference-gateway_default \
+  --sysctl net.ipv4.tcp_tw_reuse=1 --sysctl net.ipv4.ip_local_port_range="1024 65535" \
+  -v "$(pwd)/load-testing:/app" -w /app \
+  maven:3.9.7-eclipse-temurin-21-alpine mvn test-compile gatling:test -Dtarget.url=http://gateway:8080
+```
+
+> The simulation target is configurable via `-Dtarget.url=...` and defaults to
+> `http://host.docker.internal:8080` when omitted.
 
 After execution, Gatling generates a HTML performance report in `load-testing/target/gatling/`.
 

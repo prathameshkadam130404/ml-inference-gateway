@@ -14,8 +14,13 @@ import java.time.Duration;
 
 public class InferenceSimulation extends Simulation {
 
+    // Target URL is overridable via -Dtarget.url=... (e.g. http://gateway:8080 when
+    // running this container on the same Docker network). Defaults to the host proxy.
+    private static final String TARGET_URL =
+        System.getProperty("target.url", "http://host.docker.internal:8080");
+
     HttpProtocolBuilder httpProtocol = http
-        .baseUrl("http://host.docker.internal:8080")
+        .baseUrl(TARGET_URL)
         .acceptHeader("application/json")
         .contentTypeHeader("application/json");
 
