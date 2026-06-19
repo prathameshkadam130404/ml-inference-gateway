@@ -3,6 +3,7 @@ package com.prathamesh.inferencegateway.controller;
 import com.prathamesh.inferencegateway.grpc.InferenceGrpcClient;
 import com.prathamesh.inferencegateway.model.PredictionRequestDto;
 import com.prathamesh.inferencegateway.model.PredictionResponseDto;
+import com.prathamesh.inferencegateway.service.AdaptiveBatcher;
 import com.prathamesh.inferencegateway.service.IdempotencyService;
 import com.prathamesh.inferencegateway.service.RateLimiterService;
 import jakarta.validation.Valid;

@@ -1,3 +1,11 @@
+# Embedded Tomcat tuning: the load test opens a fresh connection per request at
+# up to 500 req/s. A larger accept backlog and connection ceiling prevent the OS
+# from refusing connections (ECONNREFUSED) during bursts before the acceptor drains.
+server:
+  tomcat:
+    accept-count: 1000
+    max-connections: 16384
+
 spring:
   application:
     name: ml-inference-gateway

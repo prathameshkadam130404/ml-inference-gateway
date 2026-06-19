@@ -16,6 +16,12 @@ Desktop.ini
 *~
 *.iml
 
+# Eclipse / build output
+bin/
+.project
+.classpath
+.settings/
+
 # Java and Maven
 target/
 pom.xml.tag

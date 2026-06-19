@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.Instant;
 
 @Entity
@@ -17,9 +19,10 @@ public class IdempotencyRecord {
     @Column(name = "request_hash", nullable = false, length = 64)
     private String requestHash;
 
-    // Use columnDefinition to handle Postgres JSONB. 
-    // In Spring Boot 3 with Hibernate 6, @JdbcTypeCode(SqlTypes.JSON) is also an option,
-    // but columnDefinition is robust for plain strings.
+    // Postgres JSONB column. @JdbcTypeCode(SqlTypes.JSON) makes Hibernate 6 bind the
+    // String as a JSON value (PGobject) rather than varchar, which Postgres would
+    // otherwise refuse to implicitly cast into jsonb on INSERT.
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "response_body", columnDefinition = "jsonb")
     private String responseBody;
 

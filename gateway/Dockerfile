@@ -1,4 +1,8 @@
-FROM maven:3.9.7-eclipse-temurin-21-alpine AS builder
+# NOTE: Use a glibc-based image (Debian) for the build stage, NOT Alpine.
+# The protobuf-maven-plugin downloads pre-built protoc / protoc-gen-grpc-java
+# binaries that are dynamically linked against glibc. On Alpine (musl libc)
+# they fail with "program not found or is not executable", breaking the build.
+FROM maven:3.9.7-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
